@@ -23,7 +23,11 @@ const downloadPath = './downloads';
 const [username, password] = [process.env.NINJANERD_LOGIN, process.env.NINJANERD_PASSWORD];
 if (username === undefined || password === undefined)
     throw new Error('Cannot continue, no username/password specified');
-scrapeWebsite(downloadPath, 'https://www.ninjanerd.org', username, password)
+// Getting start indices from .env file
+const SUBJECT_START = process.env.SUBJECT_START ? parseInt(process.env.SUBJECT_START) : 0;
+const CATEGORY_START = process.env.CATEGORY_START ? parseInt(process.env.CATEGORY_START) : 0;
+const LECTURE_START = process.env.LECTURE_START ? parseInt(process.env.LECTURE_START) : 0;
+scrapeWebsite(downloadPath, 'https://www.ninjanerd.org', username, password, SUBJECT_START, CATEGORY_START, LECTURE_START)
     .then(() => {
     process.exit();
 })
