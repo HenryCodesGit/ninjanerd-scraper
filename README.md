@@ -3,7 +3,7 @@
 
 
 ## Description
-This is a scraping tool build with Typescript and Playwright in order to scrape the notes section off the NinjaNerd website.
+This is a scraping tool build with Typescript, Python (*tbd*, separate branch) and Playwright in order to scrape the notes section off the NinjaNerd website.
 
 I wanted to learn Typescript and Playwright, so I did this small project to introduce myself. This is a refactor of my [previous scraping attempt](https://github.com/HenryCodesGit/ninja-nerd-downloader) I did that had the same goal, but the previous work did all the scraping through Chrome Devtools, and then downloaded the Google Drive links through the Google Drive API
 
