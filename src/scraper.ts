@@ -29,7 +29,7 @@ scrapeWebsite(downloadPath, 'https://www.ninjanerd.org', username, password,SUBJ
 async function scrapeWebsite(downloadPath: string, url : string, username : string, password: string, startI: number = 0, startJ: number = 0, startK: number = 0) : Promise<void> {
 
     // Launch browser
-    await logToFile('Launching browser\n')
+    await logToFile('\nLaunching browser\n')
     const browser = await playwright.chromium.launch({headless: true});
     const context = await browser.newContext();
 
@@ -145,13 +145,13 @@ async function scrapeWebsite(downloadPath: string, url : string, username : stri
                     await logToFile(`Files will be saved in: ${lecturePath}\n`);
     
                     // Inside lecture page, lecture links are located in '.product-member-block
-                    const lectureBlock = await lecturePage.locator('.product-member-block');
+                    const lectureBlock = await lecturePage.locator('.product-member-block').first();
                     await lectureBlock.waitFor();
 
                     // Find any links to Google (they may or may not exist)
                     const lectureLinks = await lectureBlock.locator(`a[href*="drive.google"]`).all(); // Not auto downloaded
                     lectureLinks.forEach(async (link)=>{
-                        await downloadFromLocatorLinks(context, lecturePath, lecturePage!, lectureLinks);
+                        await downloadFromLocatorLinks(context, lecturePath, lecturePage!, lectureLinks)
                     })
                     
                 } catch (err: any) {
@@ -172,7 +172,7 @@ async function scrapeWebsite(downloadPath: string, url : string, username : stri
                     const illustrationHref = await illustrationLink.getAttribute('href');
                     illustrationPage = await context.newPage();
                     await illustrationPage.goto(`${url}${illustrationHref}`);
-                    const illustrationBlock2 = await illustrationPage.locator('.product-member-block');
+                    const illustrationBlock2 = await illustrationPage.locator('.product-member-block').first();
                     await illustrationBlock2.waitFor();
 
                     const illustrationLinks2 = await illustrationBlock2.locator(`a[href*="drive.google"]`).all();
@@ -206,24 +206,24 @@ async function downloadFromLocatorLinks(context: playwright.BrowserContext, path
         const gPage = await context.newPage();
         try {
             await gPage.goto(gLink);
-            downloadPromise = gPage.waitForEvent('download');
+            downloadPromise = gPage.waitForEvent('download').catch((err)=>{return Promise.reject(err)});
             await gPage.locator('[role="button"][aria-label="Download"]').click();
     
-            const download = await downloadPromise;
+            const download = await downloadPromise
             await download.saveAs(path + `/` + download.suggestedFilename());
         } catch (err : any){
-            throw new Error(err);
+            return Promise.reject(err)
         } finally {
             await gPage.close();
         }
     } else if (gLink?.includes('drive.google.com/uc')){
-        downloadPromise = currentPage.waitForEvent('download');
+        downloadPromise = currentPage.waitForEvent('download').catch((err)=>{return Promise.reject(err)});
         await locatorLinks[0].click();
         const download = await downloadPromise;
         await download.saveAs(path + `/` + download.suggestedFilename());
     } else {
         // Type of Google drive link that is not accounted for. Script will need updating
-        throw new Error(`Link syntax not accounted for: ${gLink}`);
+        return Promise.reject(`Link syntax not accounted for: ${gLink}`);
     }
 }
 

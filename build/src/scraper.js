@@ -38,7 +38,7 @@ scrapeWebsite(downloadPath, 'https://www.ninjanerd.org', username, password, SUB
 function scrapeWebsite(downloadPath_1, url_1, username_1, password_1) {
     return __awaiter(this, arguments, void 0, function* (downloadPath, url, username, password, startI = 0, startJ = 0, startK = 0) {
         // Launch browser
-        yield logToFile('Launching browser\n');
+        yield logToFile('\nLaunching browser\n');
         const browser = yield playwright_1.default.chromium.launch({ headless: true });
         const context = yield browser.newContext();
         yield logToFile(`Navigating to ${url}\n`);
@@ -135,7 +135,7 @@ function scrapeWebsite(downloadPath_1, url_1, username_1, password_1) {
                         yield logToFile(`Lecture name: ${lectureName}\n`);
                         yield logToFile(`Files will be saved in: ${lecturePath}\n`);
                         // Inside lecture page, lecture links are located in '.product-member-block
-                        const lectureBlock = yield lecturePage.locator('.product-member-block');
+                        const lectureBlock = yield lecturePage.locator('.product-member-block').first();
                         yield lectureBlock.waitFor();
                         // Find any links to Google (they may or may not exist)
                         const lectureLinks = yield lectureBlock.locator(`a[href*="drive.google"]`).all(); // Not auto downloaded
@@ -161,7 +161,7 @@ function scrapeWebsite(downloadPath_1, url_1, username_1, password_1) {
                         const illustrationHref = yield illustrationLink.getAttribute('href');
                         illustrationPage = yield context.newPage();
                         yield illustrationPage.goto(`${url}${illustrationHref}`);
-                        const illustrationBlock2 = yield illustrationPage.locator('.product-member-block');
+                        const illustrationBlock2 = yield illustrationPage.locator('.product-member-block').first();
                         yield illustrationBlock2.waitFor();
                         const illustrationLinks2 = yield illustrationBlock2.locator(`a[href*="drive.google"]`).all();
                         yield downloadFromLocatorLinks(context, lecturePath, illustrationPage, illustrationLinks2);
@@ -194,27 +194,27 @@ function downloadFromLocatorLinks(context, path, currentPage, locatorLinks) {
             const gPage = yield context.newPage();
             try {
                 yield gPage.goto(gLink);
-                downloadPromise = gPage.waitForEvent('download');
+                downloadPromise = gPage.waitForEvent('download').catch((err) => { return Promise.reject(err); });
                 yield gPage.locator('[role="button"][aria-label="Download"]').click();
                 const download = yield downloadPromise;
                 yield download.saveAs(path + `/` + download.suggestedFilename());
             }
             catch (err) {
-                throw new Error(err);
+                return Promise.reject(err);
             }
             finally {
                 yield gPage.close();
             }
         }
         else if (gLink === null || gLink === void 0 ? void 0 : gLink.includes('drive.google.com/uc')) {
-            downloadPromise = currentPage.waitForEvent('download');
+            downloadPromise = currentPage.waitForEvent('download').catch((err) => { return Promise.reject(err); });
             yield locatorLinks[0].click();
             const download = yield downloadPromise;
             yield download.saveAs(path + `/` + download.suggestedFilename());
         }
         else {
             // Type of Google drive link that is not accounted for. Script will need updating
-            throw new Error(`Link syntax not accounted for: ${gLink}`);
+            return Promise.reject(`Link syntax not accounted for: ${gLink}`);
         }
     });
 }
